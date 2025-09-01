@@ -67,6 +67,20 @@ This issue has ${content.comments.length} comments. For issues with extensive di
 - Patterns of contributor feedback and concerns
 - Evolution of the proposed solution over time
 
+**CRITICAL: Status-Based Analysis**
+- If status is "RTBC" (Reviewed & tested by the community): This means code exists and has been reviewed/approved
+- If status is "Needs work": Code exists but requires changes
+- If status is "Needs review": Code/patch exists and needs reviewer attention
+- If status is "Active": Discussion phase, may or may not have code
+- If status is "Fixed": Issue is complete and committed
+
+**CRITICAL: Code Detection**
+Look for these indicators that code/patches exist even if not explicitly linked:
+- References to "MR" (Merge Request), "patch", "the code", "latest version"
+- Mentions of testing, code reviews, or implementation details
+- Status changes to review-related states
+- Comments about code quality, functionality, or test results
+
 Provide a structured analysis in this EXACT format:
 
 ## TECHNICAL_SUMMARY
@@ -77,7 +91,7 @@ Provide a structured analysis in this EXACT format:
 
 ## CONTRIBUTION_READINESS
 [One of: ready-to-contribute | needs-discussion | complex-advanced | blocked]
-[Brief justification in parentheses]
+[Brief justification - MUST consider current status and code availability]
 
 ## NEXT_STEPS
 - [Specific actionable step for a developer]
