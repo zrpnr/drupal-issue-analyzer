@@ -197,11 +197,42 @@ The tool is complete and production-ready for:
 - ✅ **Individual developers**: Global installation with zero setup
 - ✅ **Development teams**: Comprehensive documentation and examples  
 - ✅ **Claude Code integration**: Complete self-contained workflow
-- ✅ **Mega-issue handling**: Proven with 483-comment Drupal core issues
+- ✅ **Mega-issue handling**: Intelligent size detection with truncation and full analysis options
 - ✅ **Professional output**: Beautiful formatting suitable for team sharing
+- ✅ **Transparent limitations**: Honest handling of context limits and mega-issue challenges
+
+## Mega-Issue Handling ✅ COMPLETE
+
+### **Smart Size Detection**
+- **Automatic detection**: Issues categorized as safe/large/mega-issue based on comment count and estimated tokens
+- **Transparent warnings**: Clear size information provided to users and agents
+- **Flexible options**: Multiple strategies for handling different issue sizes
+
+### **Handling Strategies**
+1. **Default (`--claude-prompt`)**: Safe and large issues proceed automatically, mega-issues provide guidance
+2. **Truncated (`--truncate`)**: Intelligent comment selection preserving key context and recent discussion
+3. **Full analysis (`--force-full`)**: Complete analysis with honest warnings about context overflow risk
+
+### **Truncation Strategy**
+- **Preserves context**: First 3 comments (original problem/early decisions) + last 10 comments (current status)
+- **Summarizes gaps**: Clear explanation of omitted content for transparency
+- **Maintains quality**: Expert-level analysis despite reduced input
+- **Honest limitations**: Clear documentation of what information was truncated
+
+### **User Experience**
+- **Agent auto-retry**: When agents hit mega-issue limits, they get clear instructions for retry with appropriate flags
+- **Transparent failures**: `--force-full` provides honest warnings about likely context overflow
+- **No hidden behavior**: Users always know when truncation or other processing has occurred
 
 ## Future Enhancement Ideas
 
+### **Phase 5: Advanced Mega-Issue Processing 📋 FUTURE**
+- **Chunking strategies**: Process mega-issues in sections while maintaining context
+- **Timeline analysis**: Extract decision points and consensus evolution from long discussions
+- **Semantic clustering**: Group related comments for more intelligent truncation
+- **Summary synthesis**: Generate intermediate summaries of truncated sections
+
+### **Other Enhancements**
 - **Response caching**: Avoid re-analyzing same issues
 - **Multi-agent workflows**: Separate technical vs strategic analysis
 - **Codebase-aware analysis**: Enhanced insights when run from Drupal project directories

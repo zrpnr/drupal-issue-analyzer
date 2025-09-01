@@ -77,7 +77,10 @@ For Claude Code users:
             const formattedPrompt = claudeAgent.buildTruncatedPrompt(issue);
             console.log(formattedPrompt);
           } else if (options.forceFull) {
-            console.log('⚠️  Proceeding with full mega-issue analysis (may exceed context limits)...\n');
+            console.log('⚠️  PROCEEDING WITH FULL ANALYSIS - CONTEXT OVERFLOW LIKELY');
+            console.log('📊 Issue Size: This may exceed agent context limits and cause incomplete analysis');
+            console.log('💡 Consider using --truncate for more reliable results on mega-issues');
+            console.log('🔄 Proceeding anyway...\n');
             const formattedPrompt = claudeAgent.buildAnalysisPrompt(issue);
             console.log(formattedPrompt);
           } else {
