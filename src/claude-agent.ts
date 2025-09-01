@@ -1,4 +1,5 @@
 import { ParsedIssue } from './types.js';
+import { TaskToolWrapper } from './task-integration.js';
 
 export interface ClaudeAnalysis {
   issue: ParsedIssue;
@@ -12,6 +13,12 @@ export interface ClaudeAnalysis {
 }
 
 export class ClaudeAgent {
+  private taskTool: TaskToolWrapper;
+  
+  constructor() {
+    this.taskTool = new TaskToolWrapper();
+  }
+  
   async analyzeIssue(issue: ParsedIssue): Promise<ClaudeAnalysis> {
     // Construct the analysis prompt optimized for Claude Code consumption
     const prompt = this.buildAnalysisPrompt(issue);
@@ -92,15 +99,29 @@ Focus on what a Claude Code AI assistant needs to know to help a developer contr
   }
 
   private async launchAgent(prompt: string): Promise<string> {
-    // This would use the Task tool to launch an agent
-    // For now, we'll simulate the response structure
-    // TODO: Implement actual Task tool integration
-    
-    // Simulated agent response - in real implementation this would be:
-    // const result = await this.taskTool.launch('general-purpose', prompt);
-    
-    // For development, return a structured response that matches our expected format
-    // This simulates analysis of all comments, not just recent ones
+    try {
+      console.log('🤖 Launching Drupal analysis agent...');
+      
+      // Try to use the real Task tool first
+      const taskResult = await this.taskTool.invokeDrupalAnalysis(prompt);
+      
+      if (taskResult && taskResult.trim()) {
+        console.log('✅ Task tool analysis completed');
+        return taskResult;
+      }
+      
+      // Fallback to simulated response if Task tool not available or failed
+      console.log('⚠️  Task tool not available, using simulated analysis');
+      return this.getSimulatedResponse(prompt);
+      
+    } catch (error) {
+      console.log('❌ Agent failed, falling back to simulated analysis:', error);
+      return this.getSimulatedResponse(prompt);
+    }
+  }
+  
+  private getSimulatedResponse(prompt: string): string {
+    // Keep the simulated response as fallback
     const commentCount = prompt.match(/All Comments \((\d+) total\)/)?.[1] || 'many';
     return `
 ## TECHNICAL_SUMMARY
