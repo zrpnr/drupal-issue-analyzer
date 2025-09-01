@@ -48,12 +48,18 @@ ${content.problemMotivation || content.summary || 'Not specified'}
 **Proposed Resolution:**
 ${content.proposedResolution || 'Not specified'}
 
-**Recent Comments (last 5):**
-${content.comments.slice(-5).map(c => 
-  `${c.author} (${c.timestamp}): ${c.content.substring(0, 200)}${c.statusChange ? ` [Status: ${c.statusChange}]` : ''}`
+**All Comments (${content.comments.length} total):**
+${content.comments.map((c, index) => 
+  `#${index + 1} ${c.author} (${c.timestamp}): ${c.content.substring(0, 300)}${c.statusChange ? ` [Status: ${c.statusChange}]` : ''}`
 ).join('\n')}
 
 **Analysis Requirements:**
+This issue has ${content.comments.length} comments. For issues with extensive discussion, focus on:
+- Key technical decisions and consensus points
+- Most recent status changes and current blockers  
+- Patterns of contributor feedback and concerns
+- Evolution of the proposed solution over time
+
 Provide a structured analysis in this EXACT format:
 
 ## TECHNICAL_SUMMARY
@@ -94,21 +100,23 @@ Focus on what a Claude Code AI assistant needs to know to help a developer contr
     // const result = await this.taskTool.launch('general-purpose', prompt);
     
     // For development, return a structured response that matches our expected format
+    // This simulates analysis of all comments, not just recent ones
+    const commentCount = prompt.match(/All Comments \((\d+) total\)/)?.[1] || 'many';
     return `
 ## TECHNICAL_SUMMARY
-This issue addresses limitations in ECA's entity access event system where previously set access results cannot be overridden, requiring a configurable default access result mechanism.
+This issue addresses limitations in ECA's entity access event system where previously set access results cannot be overridden, requiring a configurable default access result mechanism. Through ${commentCount} comments of discussion, the community has identified critical flaws in the current implementation.
 
 ## DRUPAL_CONTEXT
-Involves Drupal's entity access system, ECA event-driven architecture, and access result objects (AccessResultInterface). Relates to core entity access hooks and contrib ECA module patterns for access control workflows.
+Involves Drupal's entity access system, ECA event-driven architecture, and access result objects (AccessResultInterface). The extensive discussion reveals inconsistencies between different ECA access event implementations and highlights the need for standardized access result handling patterns.
 
 ## CONTRIBUTION_READINESS
-needs-discussion (Complex access logic with behavior inconsistencies noted in recent comments)
+needs-discussion (Critical issues identified in comment thread including permanent access blocking and behavioral inconsistencies)
 
 ## NEXT_STEPS
-- Review the merge request code for access result handling logic
-- Test the proposed default access configuration with various entity types
-- Address behavior inconsistencies between different access events mentioned in comment #20
-- Validate that default "forbidden" doesn't permanently block access as reported
+- Review the merge request addressing the "forbidden always blocks" issue raised across multiple comments
+- Test edge cases identified in the comment discussion (default forbidden vs conditional allow scenarios)  
+- Address the behavioral inconsistencies between endpoint and access event implementations mentioned by mxh
+- Validate the sample model provided in latest comment that demonstrates the blocking behavior
 
 ## CODE_REVIEW_NEEDED
 true
@@ -121,6 +129,7 @@ intermediate
 - ECA event architecture
 - Access result objects
 - Entity hooks
+- Access result precedence handling
 `;
   }
 
