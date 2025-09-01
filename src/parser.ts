@@ -194,55 +194,60 @@ export class DrupalIssueParser {
       
       // If no structured content found, extract from comment text
       if (!content) {
-        // Try to extract actual comment content by removing metadata
-        let cleanContent = commentText
-          .replace(/Log in or register to post comments/g, '')
-          .replace(/CreditAttribution:.*?commented \d{1,2} \w+ \d{4} at \d{1,2}:\d{2}/g, '')
-          .replace(/Comment #\d+\s+\w+[^a-zA-Z0-9]*\d{1,2} \w+ \d{4} at \d{1,2}:\d{2}/g, '')
-          .replace(/Status:\s*[^»]*»[^»]*/g, '')
-          .replace(/Assigned:\s*[^»]*»[^»]*/g, '')
-          .replace(/\s+/g, ' ')
-          .trim();
+        // Split the comment into lines and process them
+        const lines = commentText.split('\n').map(l => l.trim()).filter(l => l);
+        let contentLines: string[] = [];
+        let inStatusBlock = false;
         
-        // If content is still mostly metadata, try to find the actual comment
-        if (cleanContent.length < 50) {
-          // Look for text after common metadata patterns
-          const lines = commentText.split('\n').map(l => l.trim()).filter(l => l);
-          let foundContent = false;
-          let contentLines: string[] = [];
-          
-          for (const line of lines) {
-            // Skip metadata lines
-            if (line.match(/^Comment #\d+/) ||
-                line.match(/CreditAttribution/) ||
-                line.match(/Status:/) ||
-                line.match(/Assigned:/) ||
-                line.match(/Log in or register/) ||
-                line.length < 10) {
-              continue;
-            }
-            
-            // Found actual content
-            contentLines.push(line);
-            foundContent = true;
-            
-            // Stop after reasonable amount of content
-            if (contentLines.join(' ').length > 200) break;
+        for (const line of lines) {
+          // Skip obvious metadata lines
+          if (line.match(/^Comment #\d+\s+\w+/) ||
+              line.match(/CreditAttribution/) ||
+              line.match(/Log in or register/) ||
+              line.length < 10) {
+            continue;
           }
           
-          if (foundContent) {
-            cleanContent = contentLines.join(' ');
+          // Handle status change blocks
+          if (line.match(/Status:\s*/)) {
+            inStatusBlock = true;
+            continue;
+          }
+          
+          // Skip lines that are part of status change block metadata
+          if (inStatusBlock && (
+              line.match(/^\s*$/) ||
+              line.match(/^\s+$/) ||
+              line.length < 20
+            )) {
+            continue;
+          }
+          
+          // End of status block, start collecting content
+          if (inStatusBlock && line.length > 20) {
+            inStatusBlock = false;
+          }
+          
+          // Collect actual content lines
+          if (!inStatusBlock && line.length > 15) {
+            contentLines.push(line);
+            
+            // Stop after reasonable amount of content
+            if (contentLines.join(' ').length > 400) break;
           }
         }
         
-        content = cleanContent.substring(0, 500);
+        content = contentLines.join(' ').substring(0, 500);
       }
       
-      // Extract status changes if present
+      // Extract status changes if present (extract only the status transition, not content after)
       let statusChange = '';
-      const statusMatch = $comment.text().match(/Status:\s*([^»]*»[^»]*)/);
+      const statusMatch = commentText.match(/Status:\s*([^»\n]*»[^»\n]*?)(?:\s*\n|\s*$)/);
       if (statusMatch) {
-        statusChange = statusMatch[1].replace(/[»]/g, '→').trim();
+        statusChange = statusMatch[1]
+          .replace(/[»]/g, '→')
+          .replace(/\s+/g, ' ')
+          .trim();
       }
       
       // Only add comment if we have basic info
