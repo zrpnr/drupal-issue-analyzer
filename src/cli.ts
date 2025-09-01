@@ -83,11 +83,33 @@ function displayParsedIssue(issue: any) {
   console.log(`Status: ${issue.metadata.status}`);
   console.log(`Priority: ${issue.metadata.priority}`);
   console.log(`Component: ${issue.metadata.component}`);
+  console.log(`Version: ${issue.metadata.version || 'Not specified'}`);
   console.log(`Reporter: ${issue.metadata.reporter}`);
   console.log(`Created: ${issue.metadata.created}`);
+  if (issue.metadata.updated) {
+    console.log(`Updated: ${issue.metadata.updated}`);
+  }
   console.log(`Comments: ${issue.content.comments.length}`);
   
-  if (issue.content.summary) {
+  if (issue.content.problemMotivation) {
+    console.log('\n🎯 Problem/Motivation');
+    console.log('======================');
+    console.log(issue.content.problemMotivation);
+  }
+  
+  if (issue.content.proposedResolution) {
+    console.log('\n💡 Proposed Resolution');
+    console.log('=======================');
+    console.log(issue.content.proposedResolution);
+  }
+  
+  if (issue.content.remainingTasks) {
+    console.log('\n✅ Remaining Tasks');
+    console.log('===================');
+    console.log(issue.content.remainingTasks);
+  }
+  
+  if (issue.content.summary && !issue.content.problemMotivation && !issue.content.proposedResolution) {
     console.log('\n📝 Summary');
     console.log('===========');
     console.log(issue.content.summary);
@@ -98,7 +120,12 @@ function displayParsedIssue(issue: any) {
     console.log('===================');
     issue.content.comments.slice(-3).forEach((comment: any) => {
       console.log(`${comment.author} (${comment.timestamp}):`);
-      console.log(comment.content.substring(0, 200) + (comment.content.length > 200 ? '...' : ''));
+      if (comment.statusChange) {
+        console.log(`   Status: ${comment.statusChange}`);
+      }
+      if (comment.content && comment.content.length > 10) {
+        console.log(comment.content.substring(0, 300) + (comment.content.length > 300 ? '...' : ''));
+      }
       console.log();
     });
   }

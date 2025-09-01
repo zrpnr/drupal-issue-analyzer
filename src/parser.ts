@@ -115,48 +115,148 @@ export class DrupalIssueParser {
   private parseComments($: cheerio.CheerioAPI): IssueComment[] {
     const comments: IssueComment[] = [];
     
-    // Look for comment patterns in the text content
-    const text = $.text();
-    const commentSections = text.split(/(?=\d+\.\s+\w+\s+(?:ago|\d{1,2}\s+\w+\s+\d{4}))/);
-    
-    for (let i = 1; i < commentSections.length; i++) {
-      const section = commentSections[i];
+    // Use the working .comment selector
+    $('.comment').each((index, element) => {
+      const $comment = $(element);
       
-      // Try to extract comment data from text patterns
-      const authorMatch = section.match(/^\d+\.\s+(\w+)/);
-      const timeMatch = section.match(/(\d{1,2}\s+\w+\s+\d{4}(?:\s+at\s+\d{1,2}:\d{2})?|\d+\s+(?:minutes?|hours?|days?|weeks?|months?|years?)\s+ago)/i);
+      // Extract comment ID
+      const id = $comment.attr('id') || `comment-${index}`;
       
+      // Extract author - look for the username in the comment text
+      let author = '';
+      const commentText = $comment.text();
+      
+      // Try to extract from "Comment #X username date" pattern
+      const authorMatch = commentText.match(/Comment #\d+\s+([^\s]+)/);
       if (authorMatch) {
-        const author = authorMatch[1];
-        const timestamp = timeMatch ? timeMatch[1] : '';
+        author = authorMatch[1];
+      }
+      
+      // Fallback to DOM selectors
+      if (!author) {
+        const authorSelectors = [
+          '.username a',
+          '.field--name-name a', 
+          '.comment__author a',
+          'a[href*="/user/"]'
+        ];
         
-        // Extract content (everything after the timestamp line)
-        const lines = section.split('\n').map(l => l.trim()).filter(l => l);
-        let contentStartIndex = 1; // Skip the author line
-        
-        // Find where actual content starts (after metadata)
-        for (let j = 1; j < lines.length; j++) {
-          if (!lines[j].match(/^\d+\.\s+\w+/) && 
-              !lines[j].match(/\d+\s+(?:minutes?|hours?|days?)\s+ago/i) &&
-              !lines[j].match(/Status:\s*/) &&
-              lines[j].length > 10) {
-            contentStartIndex = j;
+        for (const selector of authorSelectors) {
+          const authorElement = $comment.find(selector).first();
+          if (authorElement.length) {
+            author = authorElement.text().trim();
             break;
           }
         }
+      }
+      
+      // Extract timestamp from comment text pattern
+      let timestamp = '';
+      const timestampMatch = commentText.match(/(\d{1,2}\s+\w+\s+\d{4}\s+at\s+\d{1,2}:\d{2})/);
+      if (timestampMatch) {
+        timestamp = timestampMatch[1];
+      }
+      
+      // Fallback to DOM selectors
+      if (!timestamp) {
+        const timeSelectors = [
+          'time',
+          '.comment__time',
+          '.field--name-created',
+          '[datetime]'
+        ];
         
-        const content = lines.slice(contentStartIndex).join(' ').substring(0, 500);
-        
-        if (author && content && content.length > 10) {
-          comments.push({
-            id: `comment-${i}`,
-            author,
-            timestamp,
-            content: content.trim()
-          });
+        for (const selector of timeSelectors) {
+          const timeElement = $comment.find(selector).first();
+          if (timeElement.length) {
+            timestamp = timeElement.text().trim();
+            break;
+          }
         }
       }
-    }
+      
+      // Extract comment content - try multiple selectors
+      let content = '';
+      const contentSelectors = [
+        '.field--name-comment-body .field__item',
+        '.comment__content',
+        '.comment-body',
+        '.field--name-body .field__item'
+      ];
+      
+      for (const selector of contentSelectors) {
+        const contentElement = $comment.find(selector).first();
+        if (contentElement.length) {
+          content = contentElement.text().trim();
+          break;
+        }
+      }
+      
+      // If no structured content found, extract from comment text
+      if (!content) {
+        // Try to extract actual comment content by removing metadata
+        let cleanContent = commentText
+          .replace(/Log in or register to post comments/g, '')
+          .replace(/CreditAttribution:.*?commented \d{1,2} \w+ \d{4} at \d{1,2}:\d{2}/g, '')
+          .replace(/Comment #\d+\s+\w+[^a-zA-Z0-9]*\d{1,2} \w+ \d{4} at \d{1,2}:\d{2}/g, '')
+          .replace(/Status:\s*[^»]*»[^»]*/g, '')
+          .replace(/Assigned:\s*[^»]*»[^»]*/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        
+        // If content is still mostly metadata, try to find the actual comment
+        if (cleanContent.length < 50) {
+          // Look for text after common metadata patterns
+          const lines = commentText.split('\n').map(l => l.trim()).filter(l => l);
+          let foundContent = false;
+          let contentLines: string[] = [];
+          
+          for (const line of lines) {
+            // Skip metadata lines
+            if (line.match(/^Comment #\d+/) ||
+                line.match(/CreditAttribution/) ||
+                line.match(/Status:/) ||
+                line.match(/Assigned:/) ||
+                line.match(/Log in or register/) ||
+                line.length < 10) {
+              continue;
+            }
+            
+            // Found actual content
+            contentLines.push(line);
+            foundContent = true;
+            
+            // Stop after reasonable amount of content
+            if (contentLines.join(' ').length > 200) break;
+          }
+          
+          if (foundContent) {
+            cleanContent = contentLines.join(' ');
+          }
+        }
+        
+        content = cleanContent.substring(0, 500);
+      }
+      
+      // Extract status changes if present
+      let statusChange = '';
+      const statusMatch = $comment.text().match(/Status:\s*([^»]*»[^»]*)/);
+      if (statusMatch) {
+        statusChange = statusMatch[1].replace(/[»]/g, '→').trim();
+      }
+      
+      // Only add comment if we have basic info
+      if (author || content.length > 10) {
+        comments.push({
+          id,
+          author: author || 'Unknown',
+          timestamp: timestamp || '',
+          content: content || 'No content extracted',
+          statusChange: statusChange || undefined
+        });
+      }
+    });
+    
     
     return comments;
   }
