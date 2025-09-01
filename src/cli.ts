@@ -16,6 +16,19 @@ program
   .option('--analyze-size', 'Analyze prompt size without running agent (useful for mega-issues)')
   .option('--json', 'Output in JSON format')
   .option('--claude-prompt', 'Output formatted prompt for Claude Code agent analysis')
+  .addHelpText('after', `
+Claude Code Integration:
+  Ask Claude: "Use a Task agent to analyze this Drupal issue: [URL]"
+  The agent will automatically run: drupal-issue-analyzer "[URL]" --claude-prompt
+
+Examples:
+  $ drupal-issue-analyzer "https://drupal.org/project/eca/issues/3539583"
+  $ drupal-issue-analyzer "https://drupal.org/project/eca/issues/3539583" --json
+  $ drupal-issue-analyzer "https://drupal.org/project/eca/issues/3539583" --claude-prompt
+
+For Claude Code users:
+  Just ask: "Use a Task agent to analyze this Drupal issue: [URL] and show me the full analysis"
+`)
   .action(async (url: string, options) => {
     try {
       
