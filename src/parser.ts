@@ -6,7 +6,7 @@ export class DrupalIssueParser {
   private async fetchPage(url: string): Promise<cheerio.CheerioAPI> {
     try {
       const response = await axios.get(url, {
-        timeout: 10000,
+        timeout: 60000, // 60 seconds for mega-issues
         headers: {
           'User-Agent': 'Drupal Issue Analyzer Bot 1.0'
         }

@@ -18,6 +18,7 @@ program
   .option('--openai-key <key>', 'OpenAI API key for AI analysis')
   .option('--no-ai', 'Skip AI analysis and show only parsed data')
   .option('--claude-analysis', 'Use Claude Code agent for specialized Drupal analysis')
+  .option('--analyze-size', 'Analyze prompt size without running agent (useful for mega-issues)')
   .option('--json', 'Output in JSON format')
   .action(async (url: string, options) => {
     try {
@@ -39,6 +40,19 @@ program
           console.log(JSON.stringify(issue, null, 2));
         } else {
           displayParsedIssue(issue);
+        }
+        return;
+      }
+
+      if (options.analyzeSize) {
+        console.log('📊 Analyzing prompt size for mega-issue assessment...\n');
+        const claudeAgent = new ClaudeAgent();
+        const sizeAnalysis = claudeAgent.analyzePromptSize(issue);
+
+        if (options.json) {
+          console.log(JSON.stringify(sizeAnalysis, null, 2));
+        } else {
+          displaySizeAnalysis(sizeAnalysis, issue);
         }
         return;
       }
@@ -242,6 +256,64 @@ function displayClaudeAnalysis(analysis: ClaudeAnalysis) {
     console.log('🏗️ Related Drupal Patterns');
     console.log('===========================');
     analysis.relatedPatterns.forEach(pattern => console.log(`• ${pattern}`));
+  }
+}
+
+function displaySizeAnalysis(
+  analysis: {
+    promptLength: number;
+    estimatedTokens: number;
+    commentCount: number;
+    totalCommentLength: number;
+    averageCommentLength: number;
+    recommendation: 'safe' | 'large' | 'mega-issue';
+    promptPreview: string;
+  },
+  issue: any
+) {
+  console.log('📊 Prompt Size Analysis');
+  console.log('========================');
+  console.log(`Title: ${issue.content.title}`);
+  console.log(`Comments: ${analysis.commentCount}`);
+  console.log();
+  
+  console.log('📏 Size Metrics');
+  console.log('================');
+  console.log(`Prompt Length: ${analysis.promptLength.toLocaleString()} characters`);
+  console.log(`Estimated Tokens: ${analysis.estimatedTokens.toLocaleString()}`);
+  console.log(`Total Comment Length: ${analysis.totalCommentLength.toLocaleString()} characters`);
+  console.log(`Average Comment Length: ${analysis.averageCommentLength} characters`);
+  console.log();
+  
+  const recommendationEmoji = {
+    'safe': '🟢',
+    'large': '🟡',
+    'mega-issue': '🔴'
+  };
+  
+  const recommendationText = {
+    'safe': 'Safe to run - should process normally',
+    'large': 'Large issue - may take longer, monitor for context limits',
+    'mega-issue': 'MEGA-ISSUE - May hit context limits, consider chunking or specialized handling'
+  };
+  
+  console.log('🎯 Recommendation');
+  console.log('=================');
+  console.log(`${recommendationEmoji[analysis.recommendation]} ${analysis.recommendation.toUpperCase()}: ${recommendationText[analysis.recommendation]}`);
+  console.log();
+  
+  console.log('👀 Prompt Preview (first 500 chars)');
+  console.log('====================================');
+  console.log(analysis.promptPreview);
+  console.log();
+  
+  if (analysis.recommendation === 'mega-issue') {
+    console.log('⚠️  MEGA-ISSUE WARNINGS');
+    console.log('======================');
+    console.log('• This issue may exceed Claude\'s context window');
+    console.log('• Consider implementing prompt chunking or summarization');
+    console.log('• Agent analysis may fail or be truncated');
+    console.log('• This is exactly the type of issue this tool was designed to make accessible!');
   }
 }
 

@@ -250,4 +250,46 @@ intermediate
     sections.drupalContext = sections.drupalContext.trim();
     return sections;
   }
+
+  // Helper method to analyze prompt size before sending to agent
+  analyzePromptSize(issue: ParsedIssue): {
+    promptLength: number;
+    estimatedTokens: number;
+    commentCount: number;
+    totalCommentLength: number;
+    averageCommentLength: number;
+    recommendation: 'safe' | 'large' | 'mega-issue';
+    promptPreview: string;
+  } {
+    const prompt = this.buildAnalysisPrompt(issue);
+    const promptLength = prompt.length;
+    // Rough token estimation: ~4 characters per token
+    const estimatedTokens = Math.ceil(promptLength / 4);
+    
+    const { content } = issue;
+    const commentCount = content.comments.length;
+    const totalCommentLength = content.comments.reduce((sum, c) => sum + c.content.length, 0);
+    const averageCommentLength = commentCount > 0 ? Math.round(totalCommentLength / commentCount) : 0;
+    
+    // Determine recommendation based on size
+    let recommendation: 'safe' | 'large' | 'mega-issue' = 'safe';
+    if (estimatedTokens > 50000) {
+      recommendation = 'mega-issue';
+    } else if (estimatedTokens > 15000) {
+      recommendation = 'large';
+    }
+    
+    // Get a preview of the prompt (first 500 chars)
+    const promptPreview = prompt.substring(0, 500) + (prompt.length > 500 ? '...' : '');
+    
+    return {
+      promptLength,
+      estimatedTokens,
+      commentCount,
+      totalCommentLength,
+      averageCommentLength,
+      recommendation,
+      promptPreview
+    };
+  }
 }
