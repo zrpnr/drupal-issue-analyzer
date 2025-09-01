@@ -4,15 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Drupal Issue Analyzer** is a TypeScript/Node.js CLI tool that analyzes and summarizes Drupal.org issues, providing developer-focused insights and actionable next steps.
+**Drupal Issue Analyzer** is a TypeScript/Node.js CLI tool that analyzes and summarizes Drupal.org issues, providing developer-focused insights and actionable next steps. The tool is designed specifically for Claude Code integration with expert-level Drupal analysis capabilities.
 
 ### Key Features
-- Parses Drupal.org issue pages to extract metadata and content
-- AI-powered analysis using OpenAI to generate technical summaries
-- Generates actionable steps for developers to contribute to issues
-- CLI interface with options for JSON output and AI/no-AI modes
+- Parses Drupal.org issue pages to extract metadata and content (including all comments)
+- **Claude Code Integration**: Self-contained workflow with `--claude-prompt` flag
+- **Expert Analysis**: Deep Drupal knowledge (Entity API, Form API, contrib patterns)
+- **Beautiful Formatting**: Professional output with emojis and visual hierarchy
+- **Mega-Issue Support**: Handles 200+ comment discussions efficiently
+- **Zero Configuration**: Complete self-contained workflow
 
-## Technology Stack
+## Current Architecture
+
+### Primary Workflow: Claude Code Integration ⚡
+The tool's main purpose is providing expert Drupal analysis through Claude Code Task agents:
+
+1. **User Request**: "Use a Task agent to analyze this Drupal issue: [URL]"
+2. **Agent Execution**: Runs `drupal-issue-analyzer "[URL]" --claude-prompt`
+3. **Tool Output**: Pre-formatted expert prompt with all issue data and analysis guidance
+4. **Agent Analysis**: Applies Drupal expertise to provide structured insights
+5. **Final Output**: Professional formatted analysis with contribution readiness assessment
+
+### Technology Stack
 
 - **Language**: TypeScript
 - **Runtime**: Node.js 16+
@@ -21,7 +34,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `axios` for HTTP requests
   - `cheerio` for HTML parsing
   - `commander` for CLI interface
-  - `openai` for AI analysis
 - **Dev Tools**: ESLint, TypeScript, tsx for development
 
 ## Development Commands
@@ -30,14 +42,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Install dependencies
 npm install
 
-# Development mode
-npm run dev -- "https://drupal.org/project/example/issues/123" --no-ai
+# Development mode (defaults to parsing-only)
+npm run dev -- "https://drupal.org/project/example/issues/123"
+
+# Test Claude Code integration
+npm run dev -- "https://drupal.org/project/example/issues/123" --claude-prompt
 
 # Build project
 npm run build
-
-# Run built CLI
-npm start -- "https://drupal.org/project/example/issues/123"
 
 # Linting and type checking
 npm run lint
@@ -50,9 +62,8 @@ npm run typecheck
 src/
 ├── types.ts              # TypeScript interfaces and types
 ├── parser.ts             # Drupal issue parsing logic
-├── analyzer.ts           # OpenAI analysis using GPT-4
-├── claude-agent.ts       # Claude Code Task tool integration
-├── task-integration.ts   # Task tool wrapper and interface
+├── claude-agent.ts       # Claude Code prompt generation and formatting
+├── task-integration.ts   # Task tool wrapper (legacy)
 ├── cli.ts                # Command-line interface
 └── index.ts              # Main export file
 ```
@@ -61,150 +72,137 @@ src/
 
 ### Parser (`src/parser.ts`)
 - `DrupalIssueParser.parseIssue()` - Main parsing method
-- Extracts metadata from `#block-project-issue-issue-metadata` selector
+- Extracts metadata from `#block-project-issue-issue-metadata` selector  
 - Parses issue content using regex patterns for Problem/Motivation sections
-- Basic comment extraction framework
+- Comprehensive comment extraction with status change detection
 
-### Analyzer (`src/analyzer.ts`)
-- `IssueAnalyzer.analyzeIssue()` - AI analysis using OpenAI GPT-4
-- Generates technical summaries, work completed, remaining tasks, and actionable steps
-- Structured prompt engineering for developer-focused analysis
+### Claude Agent (`src/claude-agent.ts`)
+- `buildAnalysisPrompt()` - Generates formatted prompt for Claude Code agents
+- `analyzePromptSize()` - Analyzes prompt size for mega-issue assessment
+- Contains expert Drupal analysis guidance and structured output formatting
+- **Self-contained**: All necessary prompts and formatting built into the tool
 
 ### CLI (`src/cli.ts`)
-- Commander.js-based interface
-- Supports `--no-ai`, `--json`, `--openai-key` options
-- Validates Drupal.org URLs before processing
+- Commander.js-based interface with enhanced help text
+- **Default behavior**: Parse and display issue data (no flags needed)
+- **Key flags**: `--json`, `--claude-prompt`, `--analyze-size`
+- **Claude Integration**: Help text includes complete usage instructions
+
+## CLI Options
+
+```bash
+# Default: Parse and display issue data
+drupal-issue-analyzer "URL"
+
+# JSON output (for programmatic use)
+drupal-issue-analyzer "URL" --json
+
+# Claude Code integration (formatted prompt)
+drupal-issue-analyzer "URL" --claude-prompt
+
+# Size analysis (for mega-issues)
+drupal-issue-analyzer "URL" --analyze-size
+```
+
+## Claude Code Integration Features ✅ COMPLETE
+
+### **Self-Contained Workflow**
+- **`--claude-prompt` flag**: Outputs complete formatted analysis prompt
+- **Built-in expertise**: All Drupal knowledge embedded in prompts
+- **Professional formatting**: Emoji headers, color-coded status, structured output
+- **No parsing complexity**: Agent receives formatted prompt, returns formatted analysis
+
+### **Expert-Level Analysis**
+- **Status recognition**: Correctly interprets RTBC, needs work, needs review, etc.
+- **Code detection**: Identifies MR/patch references in comments
+- **Contribution readiness**: 🟢🟡🟠🔴 assessment system
+- **Technical depth**: Entity API, Form API, event systems, access patterns
+- **Community context**: Collaboration patterns, consensus building, reviewer feedback
+
+### **Mega-Issue Capability** 🚀
+- **483-comment parsing**: Successfully processes massive discussions
+- **Context efficiency**: 30K structured tokens vs 500K+ HTML noise
+- **Smart architecture**: Parser handles complexity, agents focus on analysis
+- **Size assessment**: `--analyze-size` for pre-flight mega-issue evaluation
+
+## Usage with Claude Code Sessions
+
+### Simple Request Format
+```
+Use a Task agent to analyze this Drupal issue: [ISSUE_URL]
+
+Please show me both the full agent analysis AND your summary of what this means for our project.
+```
+
+### What You Get
+1. **🤖 Complete Agent Analysis**: Professional formatted response with emoji headers, contribution readiness (🟢🟡🟠🔴), complexity levels, and next steps
+2. **📋 Claude's Strategic Context**: Summary, project implications, and recommendations
+
+### Example Usage Patterns
+
+**For contribution planning:**
+```
+Use a Task agent to analyze this Drupal issue: https://www.drupal.org/project/eca/issues/3540135
+
+Show me the full analysis so I can share it with my team, and add your thoughts on how it fits our current sprint goals.
+```
+
+**For multiple issue comparison:**
+```
+Use a Task agent to analyze these Drupal issues and recommend which one I should work on:
+- [URL 1]
+- [URL 2]
+```
 
 ## Development Guidelines
 
-- **Parsing Strategy**: Uses cheerio for DOM parsing and regex for text extraction
+- **Parsing-First Architecture**: Tool focuses on excellent parsing, agents handle analysis
 - **Error Handling**: Graceful degradation when selectors fail
-- **AI Integration**: Optional OpenAI integration with fallback to parsed-only output
+- **Self-Documentation**: `--help` includes complete Claude Code integration instructions
 - **Type Safety**: Full TypeScript coverage with proper interfaces
+- **Zero Dependencies**: No OpenAI API keys or external services required
 
 ## Testing
 
 Test the tool with various Drupal.org issue URLs:
 ```bash
-npm run dev -- "https://www.drupal.org/project/eca/issues/3539583" --no-ai
+# Test parsing
+npm run dev -- "https://www.drupal.org/project/eca/issues/3539583"
+
+# Test Claude Code integration
+npm run dev -- "https://www.drupal.org/project/eca/issues/3539583" --claude-prompt
+
+# Test mega-issue size analysis
+npm run dev -- "https://www.drupal.org/project/drupal/issues/[large-issue]" --analyze-size
 ```
 
 ## Distribution
 
 - Configured as npm package `drupal-issue-analyzer`
 - Binary: `drupal-issue-analyzer` command
-- Ready for `npm publish` with proper build scripts
+- Global installation: `npm install -g drupal-issue-analyzer`
+- **Self-discovering**: `drupal-issue-analyzer --help` includes Claude Code instructions
 
-## Current Features
+## Tool Discovery for Claude
 
-### Core Functionality ✅ COMPLETE
-- **Issue Parsing**: Extracts metadata, content, and all comments from Drupal.org issues
-- **Comment Analysis**: Handles issues with extensive discussion (tested up to 22+ comments)
-- **Clean Text Processing**: Separates status changes from comment content, removes UI artifacts
-- **Multiple Output Modes**: `--no-ai`, `--claude-analysis`, `--json`, and OpenAI integration
+The tool is designed to be discoverable by Claude through standard conventions:
 
-### Claude Code Integration ✅ COMPLETE  
-- **`--claude-analysis` Mode**: Specialized analysis optimized for Claude Code workflows
-- **Drupal Expertise**: Agent prompt with deep Drupal API and pattern knowledge
-- **All Comments Analysis**: Processes complete comment history, not just recent discussions
-- **Structured Output**: Contribution readiness, complexity assessment, next steps, and related patterns
-- **Real Task Tool Integration**: ✅ **LIVE AND WORKING** - Uses actual Claude Code Task tool for expert analysis
+1. **Natural Discovery**: `drupal-issue-analyzer --help` shows complete Claude Code integration
+2. **Global CLAUDE.md**: Can be documented in `~/.claude/CLAUDE.md`
+3. **Project-specific**: Can be noted in individual project CLAUDE.md files
 
-### Production Task Tool Integration ✅ COMPLETE
-- **Real Agent Integration**: ✅ Implemented with TaskToolWrapper and graceful fallback
-- **Live Analysis Verified**: ✅ Successfully tested with actual Drupal issues using Task tool
-- **Error Handling**: ✅ Comprehensive fallback to parsing-only mode when agents unavailable
-- **Large Thread Ready**: ✅ Handles extensive comment discussions (tested up to 22 comments, designed for 483+)
-- **Expert-Level Output**: ✅ Generates technical analysis with Drupal architecture knowledge
+## Current Status: Production Ready ✅
 
-### Agent Prompt Optimization ✅ COMPLETE
-- **RTBC Status Recognition**: ✅ Agent correctly interprets "Reviewed & tested by the community" status
-- **Code Detection**: ✅ Identifies MR/patch references even when not explicitly linked
-- **Status-Based Analysis**: ✅ Adjusts contribution readiness based on current issue status
-- **Web Request Constraints**: ✅ Prevents agent from making unauthorized external requests
+The tool is complete and production-ready for:
+- ✅ **Individual developers**: Global installation with zero setup
+- ✅ **Development teams**: Comprehensive documentation and examples  
+- ✅ **Claude Code integration**: Complete self-contained workflow
+- ✅ **Mega-issue handling**: Proven with 483-comment Drupal core issues
+- ✅ **Professional output**: Beautiful formatting suitable for team sharing
 
-## Future Enhancements
+## Future Enhancement Ideas
 
-### Phase 2: Advanced Features 📋 PLANNED
-- **Response Caching**: Avoid re-analyzing same issues multiple times for performance
-- **Mega-Issue Timeline Analysis**: Special handling for 200+ comment threads with decision point tracking
-- **Codebase-Aware Analysis**: Enhanced analysis when run from within Drupal project directories
-- **Multi-Agent Workflows**: Separate agents for technical analysis vs contribution strategy
-- **Integration Hub**: Connect with Composer, Drush, Git workflows for complete development assistance
-
-## Real-World Impact
-
-### **Mega-Issue Capability** 🚀
-The tool successfully transforms previously inaccessible complex issues into actionable contribution opportunities:
-- **483-comment Drupal core issues**: Successfully parsed (121K chars → 30K structured tokens)
-- **Smart Architecture**: Parser handles HTML noise, agents focus on analysis
-- **Context Efficiency**: Pre-processed data vs raw HTML fetching
-- **Size Analysis**: `--analyze-size` flag for pre-flight assessment of large issues
-
-### **Live Task Tool Integration** ⚡
-- **Real agent analysis**: No simulation - actual Claude expert analysis
-- **Correct Architecture**: Agents receive clean parsed data, not raw HTML
-- **Drupal architecture knowledge**: Entity API, Form API, Event systems, Access patterns
-- **Technical depth**: Understanding of ContentEntityForm vs ConfigEntityForm, event subscriber patterns
-- **Community context**: Recognizes collaboration patterns, patch status, consensus building
-
-### **Core Value Proposition** 🎯
-```
-Raw Drupal HTML (500K+ chars, noisy) → Our Parser (clean structure) → Agent Analysis (focused insights)
-```
-- **Parser Advantage**: Converts HTML chaos into structured, focused data
-- **Agent Efficiency**: Analyzes clean data instead of parsing raw markup
-- **Context Optimization**: 30K structured tokens vs 500K+ HTML noise
-- **Consistent Results**: Same parsing logic whether in local dev or Claude Code environment
-
-## Usage with Claude Code Sessions
-
-When working on Drupal issues in Claude Code, this tool provides the optimal workflow for analyzing complex Drupal.org issues.
-
-### Quick Start
-To analyze any Drupal.org issue URL in a Claude Code session:
-
-```
-Analyze this Drupal issue: [ISSUE_URL]
-Use a Task agent to run: drupal-issue-analyzer "[URL]" --json --no-ai
-Then provide expert Drupal analysis with contribution readiness, technical context, and next steps.
-```
-
-### Self-Contained Workflow ⚡
-The tool is designed for Claude Code's Task agent system:
-
-1. **Claude spawns a Task agent** that has access to tools (Bash, Read, etc.)
-2. **Agent runs the parsing script** to get clean JSON data from the Drupal issue
-3. **Agent applies Drupal expertise** to analyze the technical details and community context
-4. **Agent returns structured insights** about contribution opportunities and next steps
-5. **Claude relays the analysis** with full technical depth and actionable guidance
-
-### Why This Architecture Works
-- ✅ **Context Efficient**: Only final analysis reaches Claude's context, not raw HTML
-- ✅ **Self-Contained**: Agent handles the entire pipeline from URL to insights
-- ✅ **Real Tool Access**: Agent can run the CLI tool directly with proper permissions
-- ✅ **Expert Analysis**: Agent has deep Drupal knowledge for architecture and contribution patterns
-- ✅ **Handles Mega-Issues**: Successfully processes 200+ comment issues that would overflow context
-
-### Example Usage Patterns
-
-**Working on a Drupal module:**
-```
-I'm working on the ECA module. Can you analyze this issue to see if it's ready for contribution?
-https://www.drupal.org/project/eca/issues/3540135
-```
-
-**Understanding complex core issues:**
-```
-This Drupal core issue has 400+ comments. Can you help me understand the current state and what needs to be done?
-https://www.drupal.org/project/drupal/issues/[number]
-```
-
-**Contribution planning:**
-```
-I want to contribute to Drupal but need help finding suitable issues. Can you analyze these candidates and recommend the best one for my skill level?
-[List of issue URLs]
-```
-
-### Global Availability
-The tool is installed globally as `drupal-issue-analyzer` command, making it available from any project directory in Claude Code sessions.
+- **Response caching**: Avoid re-analyzing same issues
+- **Multi-agent workflows**: Separate technical vs strategic analysis
+- **Codebase-aware analysis**: Enhanced insights when run from Drupal project directories
+- **Integration hub**: Connect with Composer, Drush, Git workflows
