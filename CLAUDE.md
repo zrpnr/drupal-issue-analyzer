@@ -93,9 +93,31 @@ npm run dev -- "https://www.drupal.org/project/eca/issues/3539583" --no-ai
 - Binary: `drupal-issue-analyzer` command
 - Ready for `npm publish` with proper build scripts
 
+## Current Features
+
+### Core Functionality ✅ COMPLETE
+- **Issue Parsing**: Extracts metadata, content, and all comments from Drupal.org issues
+- **Comment Analysis**: Handles issues with extensive discussion (tested up to 22+ comments)
+- **Clean Text Processing**: Separates status changes from comment content, removes UI artifacts
+- **Multiple Output Modes**: `--no-ai`, `--claude-analysis`, `--json`, and OpenAI integration
+
+### Claude Code Integration ✅ COMPLETE  
+- **`--claude-analysis` Mode**: Specialized analysis optimized for Claude Code workflows
+- **Drupal Expertise**: Agent prompt with deep Drupal API and pattern knowledge
+- **All Comments Analysis**: Processes complete comment history, not just recent discussions
+- **Structured Output**: Contribution readiness, complexity assessment, next steps, and related patterns
+- **Simulated Framework**: Complete implementation ready for Task tool integration
+
 ## Future Enhancements
 
-- **Pagination**: Handle issues with many comments across multiple pages
-- **Caching**: Add request caching for development efficiency  
-- **Issue Types**: Support for different Drupal project types beyond modules
-- **Claude Code Agent Analysis**: Add `--claude-analysis` mode that uses the Task tool to launch a specialized agent for Drupal-specific analysis optimized for Claude Code consumption. This would provide Drupal expertise, pattern recognition, and codebase-aware insights formatted specifically for AI assistant workflows.
+### Phase 1: Production Task Tool Integration 🔄 NEXT PRIORITY
+- **Real Agent Integration**: Replace simulated responses with actual Task tool calls
+- **Large Thread Handling**: Test and optimize for 100+ comment issues (up to 483 comments found in Drupal core)
+- **Error Handling**: Graceful fallback to parsing-only mode when agents unavailable
+- **Response Caching**: Avoid re-analyzing same issues multiple times
+
+### Phase 2: Advanced Features 📋 PLANNED
+- **Codebase-Aware Analysis**: Enhanced analysis when run from within Drupal project directories
+- **Multi-Agent Workflows**: Separate agents for technical analysis vs contribution strategy  
+- **Mega-Issue Optimization**: Special handling for 200+ comment threads with timeline analysis
+- **Integration Hub**: Connect with Composer, Drush, Git workflows for complete development assistance
