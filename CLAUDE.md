@@ -156,3 +156,55 @@ Raw Drupal HTML (500K+ chars, noisy) → Our Parser (clean structure) → Agent 
 - **Agent Efficiency**: Analyzes clean data instead of parsing raw markup
 - **Context Optimization**: 30K structured tokens vs 500K+ HTML noise
 - **Consistent Results**: Same parsing logic whether in local dev or Claude Code environment
+
+## Usage with Claude Code Sessions
+
+When working on Drupal issues in Claude Code, this tool provides the optimal workflow for analyzing complex Drupal.org issues.
+
+### Quick Start
+To analyze any Drupal.org issue URL in a Claude Code session:
+
+```
+Analyze this Drupal issue: [ISSUE_URL]
+Use a Task agent to run: drupal-issue-analyzer "[URL]" --json --no-ai
+Then provide expert Drupal analysis with contribution readiness, technical context, and next steps.
+```
+
+### Self-Contained Workflow ⚡
+The tool is designed for Claude Code's Task agent system:
+
+1. **Claude spawns a Task agent** that has access to tools (Bash, Read, etc.)
+2. **Agent runs the parsing script** to get clean JSON data from the Drupal issue
+3. **Agent applies Drupal expertise** to analyze the technical details and community context
+4. **Agent returns structured insights** about contribution opportunities and next steps
+5. **Claude relays the analysis** with full technical depth and actionable guidance
+
+### Why This Architecture Works
+- ✅ **Context Efficient**: Only final analysis reaches Claude's context, not raw HTML
+- ✅ **Self-Contained**: Agent handles the entire pipeline from URL to insights
+- ✅ **Real Tool Access**: Agent can run the CLI tool directly with proper permissions
+- ✅ **Expert Analysis**: Agent has deep Drupal knowledge for architecture and contribution patterns
+- ✅ **Handles Mega-Issues**: Successfully processes 200+ comment issues that would overflow context
+
+### Example Usage Patterns
+
+**Working on a Drupal module:**
+```
+I'm working on the ECA module. Can you analyze this issue to see if it's ready for contribution?
+https://www.drupal.org/project/eca/issues/3540135
+```
+
+**Understanding complex core issues:**
+```
+This Drupal core issue has 400+ comments. Can you help me understand the current state and what needs to be done?
+https://www.drupal.org/project/drupal/issues/[number]
+```
+
+**Contribution planning:**
+```
+I want to contribute to Drupal but need help finding suitable issues. Can you analyze these candidates and recommend the best one for my skill level?
+[List of issue URLs]
+```
+
+### Global Availability
+The tool is installed globally as `drupal-issue-analyzer` command, making it available from any project directory in Claude Code sessions.

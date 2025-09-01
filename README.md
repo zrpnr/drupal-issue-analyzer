@@ -6,8 +6,10 @@ A CLI tool that analyzes and summarizes Drupal.org issues, providing developer-f
 
 - **Issue Parsing**: Extracts metadata, content, and comments from Drupal.org issue pages
 - **AI Analysis**: Uses OpenAI to provide intelligent summaries and recommendations
+- **Claude Code Integration**: Specialized workflow for AI-assisted Drupal development
 - **Developer-Focused**: Analyzes issues the way an experienced Drupal developer would
 - **Actionable Steps**: Generates specific next steps for contributing to issues
+- **Mega-Issue Support**: Handles complex issues with 200+ comments efficiently
 - **CLI Interface**: Easy-to-use command-line tool
 
 ## Installation
@@ -23,10 +25,33 @@ npm install -g drupal-issue-analyzer
 drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583" --no-ai
 ```
 
-### Claude Code Analysis (Specialized for AI Assistants)
+### Claude Code Integration ⚡ (Recommended)
+The tool is designed to work seamlessly with [Claude Code](https://claude.ai/code) for AI-assisted Drupal development:
+
+```
+Ask Claude: "Analyze this Drupal issue: https://www.drupal.org/project/eca/issues/3539583"
+```
+
+Claude will automatically:
+1. Spawn a specialized agent with Drupal expertise
+2. Run `drupal-issue-analyzer "[URL]" --json --no-ai` to parse the issue
+3. Apply deep Drupal knowledge to analyze technical context and contribution opportunities
+4. Provide structured insights about readiness, complexity, and next steps
+
+**Why this approach is optimal:**
+- ✅ Handles mega-issues (200+ comments) that would overflow AI context windows
+- ✅ Expert-level Drupal knowledge (Entity API, Form API, contrib patterns)
+- ✅ Self-contained workflow - agent manages the entire pipeline
+- ✅ Context-efficient - only final analysis reaches Claude's context
+- ✅ Real-time analysis - no API keys or setup required
+
+### Direct CLI Usage
 ```bash
-# Optimized analysis for Claude Code workflows
-drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583" --claude-analysis
+# Basic analysis without AI
+drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583" --no-ai
+
+# Get JSON output for programmatic use
+drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583" --json --no-ai
 ```
 
 ### Full OpenAI Analysis
@@ -38,14 +63,35 @@ export OPENAI_API_KEY=your_openai_api_key_here
 drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583"
 ```
 
-### JSON Output
+## Team Usage
+
+This tool is designed for development teams working on Drupal projects. The Claude Code integration makes it especially valuable for:
+
+### Project Planning
+- Quickly assess the state and complexity of potential issues to work on
+- Understand technical requirements and contribution readiness
+- Get expert insights on Drupal architectural patterns involved
+
+### Code Review Process
+- Analyze issues before starting work to understand full context
+- Get structured summaries of complex discussions with 100+ comments
+- Identify potential blockers or dependencies early
+
+### Knowledge Sharing
+- Help team members understand unfamiliar Drupal subsystems
+- Share structured analysis of complex issues via JSON output
+- Onboard new developers to contribution processes
+
+### CI/CD Integration
 ```bash
-drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583" --json
+# Generate structured issue data for automated processes
+drupal-issue-analyzer "$ISSUE_URL" --json --no-ai > issue-analysis.json
 ```
 
 ## Example Output
 
-### Claude Code Analysis Output
+### Claude Code Integration Result
+When you ask Claude to analyze a Drupal issue, you'll get expert analysis like this:
 ```
 🤖 Claude Code Analysis
 ========================
