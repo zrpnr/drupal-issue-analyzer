@@ -135,14 +135,24 @@ npm run dev -- "https://www.drupal.org/project/eca/issues/3539583" --no-ai
 ## Real-World Impact
 
 ### **Mega-Issue Capability** 🚀
-The tool now successfully transforms previously inaccessible complex issues into actionable contribution opportunities:
-- **483-comment Drupal core issues**: From intimidating to analyzable in minutes
-- **Expert-level technical analysis**: Identifies architecture patterns, API considerations, consensus points
-- **Contribution readiness assessment**: Immediate understanding of how to help
-- **Historical context synthesis**: Years of discussion distilled into actionable next steps
+The tool successfully transforms previously inaccessible complex issues into actionable contribution opportunities:
+- **483-comment Drupal core issues**: Successfully parsed (121K chars → 30K structured tokens)
+- **Smart Architecture**: Parser handles HTML noise, agents focus on analysis
+- **Context Efficiency**: Pre-processed data vs raw HTML fetching
+- **Size Analysis**: `--analyze-size` flag for pre-flight assessment of large issues
 
 ### **Live Task Tool Integration** ⚡
 - **Real agent analysis**: No simulation - actual Claude expert analysis
+- **Correct Architecture**: Agents receive clean parsed data, not raw HTML
 - **Drupal architecture knowledge**: Entity API, Form API, Event systems, Access patterns
 - **Technical depth**: Understanding of ContentEntityForm vs ConfigEntityForm, event subscriber patterns
 - **Community context**: Recognizes collaboration patterns, patch status, consensus building
+
+### **Core Value Proposition** 🎯
+```
+Raw Drupal HTML (500K+ chars, noisy) → Our Parser (clean structure) → Agent Analysis (focused insights)
+```
+- **Parser Advantage**: Converts HTML chaos into structured, focused data
+- **Agent Efficiency**: Analyzes clean data instead of parsing raw markup
+- **Context Optimization**: 30K structured tokens vs 500K+ HTML noise
+- **Consistent Results**: Same parsing logic whether in local dev or Claude Code environment
