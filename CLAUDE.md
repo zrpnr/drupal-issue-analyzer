@@ -2,23 +2,100 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Repository Status
+## Project Overview
 
-This is currently an empty repository with only git initialization. The repository appears to be set up for a project called "ddoto-issues" but contains no source code, configuration files, or documentation yet.
+**Drupal Issue Analyzer** is a TypeScript/Node.js CLI tool that analyzes and summarizes Drupal.org issues, providing developer-focused insights and actionable next steps.
 
-## Development Setup
+### Key Features
+- Parses Drupal.org issue pages to extract metadata and content
+- AI-powered analysis using OpenAI to generate technical summaries
+- Generates actionable steps for developers to contribute to issues
+- CLI interface with options for JSON output and AI/no-AI modes
 
-Since this is a new repository, you will likely need to:
+## Technology Stack
 
-1. Initialize the project structure based on the intended technology stack
-2. Set up package management (package.json for Node.js, requirements.txt for Python, etc.)
-3. Configure build tools, linters, and testing frameworks as appropriate
-4. Create initial project documentation
+- **Language**: TypeScript
+- **Runtime**: Node.js 16+
+- **Build**: TypeScript compiler (tsc)
+- **Dependencies**: 
+  - `axios` for HTTP requests
+  - `cheerio` for HTML parsing
+  - `commander` for CLI interface
+  - `openai` for AI analysis
+- **Dev Tools**: ESLint, TypeScript, tsx for development
 
-## Notes for Future Development
+## Development Commands
 
-- The repository name suggests this may be related to issue tracking or management
-- No existing architecture patterns or conventions are established yet
-- All development practices and tooling choices are still to be determined
+```bash
+# Install dependencies
+npm install
 
-This file should be updated as the project structure and tooling are established.
+# Development mode
+npm run dev -- "https://drupal.org/project/example/issues/123" --no-ai
+
+# Build project
+npm run build
+
+# Run built CLI
+npm start -- "https://drupal.org/project/example/issues/123"
+
+# Linting and type checking
+npm run lint
+npm run typecheck
+```
+
+## Project Structure
+
+```
+src/
+├── types.ts      # TypeScript interfaces and types
+├── parser.ts     # Drupal issue parsing logic
+├── analyzer.ts   # AI analysis using OpenAI
+├── cli.ts        # Command-line interface
+└── index.ts      # Main export file
+```
+
+## Key Components
+
+### Parser (`src/parser.ts`)
+- `DrupalIssueParser.parseIssue()` - Main parsing method
+- Extracts metadata from `#block-project-issue-issue-metadata` selector
+- Parses issue content using regex patterns for Problem/Motivation sections
+- Basic comment extraction framework
+
+### Analyzer (`src/analyzer.ts`)
+- `IssueAnalyzer.analyzeIssue()` - AI analysis using OpenAI GPT-4
+- Generates technical summaries, work completed, remaining tasks, and actionable steps
+- Structured prompt engineering for developer-focused analysis
+
+### CLI (`src/cli.ts`)
+- Commander.js-based interface
+- Supports `--no-ai`, `--json`, `--openai-key` options
+- Validates Drupal.org URLs before processing
+
+## Development Guidelines
+
+- **Parsing Strategy**: Uses cheerio for DOM parsing and regex for text extraction
+- **Error Handling**: Graceful degradation when selectors fail
+- **AI Integration**: Optional OpenAI integration with fallback to parsed-only output
+- **Type Safety**: Full TypeScript coverage with proper interfaces
+
+## Testing
+
+Test the tool with various Drupal.org issue URLs:
+```bash
+npm run dev -- "https://www.drupal.org/project/eca/issues/3539583" --no-ai
+```
+
+## Distribution
+
+- Configured as npm package `drupal-issue-analyzer`
+- Binary: `drupal-issue-analyzer` command
+- Ready for `npm publish` with proper build scripts
+
+## Future Enhancements
+
+- **Pagination**: Handle issues with many comments across multiple pages
+- **Caching**: Add request caching for development efficiency  
+- **Issue Types**: Support for different Drupal project types beyond modules
+- **Claude Code Agent Analysis**: Add `--claude-analysis` mode that uses the Task tool to launch a specialized agent for Drupal-specific analysis optimized for Claude Code consumption. This would provide Drupal expertise, pattern recognition, and codebase-aware insights formatted specifically for AI assistant workflows.
