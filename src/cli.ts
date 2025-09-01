@@ -16,6 +16,8 @@ program
   .option('--analyze-size', 'Analyze prompt size without running agent (useful for mega-issues)')
   .option('--json', 'Output in JSON format')
   .option('--claude-prompt', 'Output formatted prompt for Claude Code agent analysis')
+  .option('--truncate', 'Use with --claude-prompt for mega-issues: intelligent comment truncation')
+  .option('--force-full', 'Use with --claude-prompt for mega-issues: attempt full analysis anyway')
   .addHelpText('after', `
 Claude Code Integration:
   Ask Claude: "Use a Task agent to analyze this Drupal issue: [URL]"
@@ -25,9 +27,14 @@ Examples:
   $ drupal-issue-analyzer "https://drupal.org/project/eca/issues/3539583"
   $ drupal-issue-analyzer "https://drupal.org/project/eca/issues/3539583" --json
   $ drupal-issue-analyzer "https://drupal.org/project/eca/issues/3539583" --claude-prompt
+  
+Mega-Issue Handling:
+  $ drupal-issue-analyzer "[URL]" --claude-prompt --truncate     # Smart truncation
+  $ drupal-issue-analyzer "[URL]" --claude-prompt --force-full   # Attempt full analysis
 
 For Claude Code users:
   Just ask: "Use a Task agent to analyze this Drupal issue: [URL] and show me the full analysis"
+  For mega-issues, the agent will automatically retry with appropriate options.
 `)
   .action(async (url: string, options) => {
     try {
@@ -59,8 +66,34 @@ For Claude Code users:
 
       if (options.claudePrompt) {
         const claudeAgent = new ClaudeAgent();
-        const formattedPrompt = claudeAgent.buildAnalysisPrompt(issue);
-        console.log(formattedPrompt);
+        const sizeAnalysis = claudeAgent.analyzePromptSize(issue);
+        
+        // Always show size info
+        console.log(`📊 Issue Size: ${sizeAnalysis.commentCount} comments, ~${sizeAnalysis.estimatedTokens} tokens (${sizeAnalysis.recommendation.toUpperCase()})\n`);
+        
+        if (sizeAnalysis.recommendation === 'mega-issue') {
+          if (options.truncate) {
+            console.log('🔄 Using truncated analysis for mega-issue...\n');
+            const formattedPrompt = claudeAgent.buildTruncatedPrompt(issue);
+            console.log(formattedPrompt);
+          } else if (options.forceFull) {
+            console.log('⚠️  Proceeding with full mega-issue analysis (may exceed context limits)...\n');
+            const formattedPrompt = claudeAgent.buildAnalysisPrompt(issue);
+            console.log(formattedPrompt);
+          } else {
+            console.log('🛑 MEGA-ISSUE DETECTED - This may exceed agent context limits.');
+            console.log('Options:');
+            console.log('  --truncate     : Analyze with intelligent comment truncation');
+            console.log('  --force-full   : Attempt full analysis anyway (may fail)');
+            console.log('\nExample:');
+            console.log(`  drupal-issue-analyzer "${url}" --claude-prompt --truncate`);
+            process.exit(1);
+          }
+        } else {
+          // Safe or large - proceed normally
+          const formattedPrompt = claudeAgent.buildAnalysisPrompt(issue);
+          console.log(formattedPrompt);
+        }
         return;
       }
 
