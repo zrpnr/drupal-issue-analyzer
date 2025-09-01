@@ -37,11 +37,3 @@ export interface ParsedIssue {
   content: IssueContent;
 }
 
-export interface IssueSummary {
-  issue: ParsedIssue;
-  technicalSummary: string;
-  workCompleted: string[];
-  remainingWork: string[];
-  actionableSteps: string[];
-  recommendedPriority: 'low' | 'medium' | 'high' | 'urgent';
-}

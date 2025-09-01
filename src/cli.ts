@@ -2,9 +2,7 @@
 
 import { Command } from 'commander';
 import { DrupalIssueParser } from './parser.js';
-import { IssueAnalyzer } from './analyzer.js';
 import { ClaudeAgent, ClaudeAnalysis } from './claude-agent.js';
-import { IssueSummary } from './types.js';
 
 const program = new Command();
 
@@ -15,9 +13,6 @@ program
 
 program
   .argument('<url>', 'Drupal.org issue URL to analyze')
-  .option('--openai-key <key>', 'OpenAI API key for AI analysis')
-  .option('--no-ai', 'Skip AI analysis and show only parsed data')
-  .option('--claude-analysis', 'Use Claude Code agent for specialized Drupal analysis')
   .option('--analyze-size', 'Analyze prompt size without running agent (useful for mega-issues)')
   .option('--json', 'Output in JSON format')
   .action(async (url: string, options) => {
@@ -35,15 +30,6 @@ program
       const parser = new DrupalIssueParser();
       const issue = await parser.parseIssue(url);
 
-      if (options.ai === false) {
-        if (options.json) {
-          console.log(JSON.stringify(issue, null, 2));
-        } else {
-          displayParsedIssue(issue);
-        }
-        return;
-      }
-
       if (options.analyzeSize) {
         console.log('📊 Analyzing prompt size for mega-issue assessment...\n');
         const claudeAgent = new ClaudeAgent();
@@ -57,35 +43,11 @@ program
         return;
       }
 
-      if (options.claudeAnalysis) {
-        console.log('Running Claude agent analysis...\n');
-        const claudeAgent = new ClaudeAgent();
-        const analysis = await claudeAgent.analyzeIssue(issue);
-
-        if (options.json) {
-          console.log(JSON.stringify(analysis, null, 2));
-        } else {
-          displayClaudeAnalysis(analysis);
-        }
-        return;
-      }
-
-      const apiKey = options.openaiKey || process.env.OPENAI_API_KEY;
-      if (!apiKey) {
-        console.error('Error: OpenAI API key required for AI analysis');
-        console.error('Set OPENAI_API_KEY environment variable or use --openai-key option');
-        console.error('Or use --no-ai to skip AI analysis or --claude-analysis for specialized analysis');
-        process.exit(1);
-      }
-
-      console.log('Running OpenAI analysis...\n');
-      const analyzer = new IssueAnalyzer(apiKey);
-      const summary = await analyzer.analyzeIssue(issue);
-
+      // Default behavior: display parsed issue data
       if (options.json) {
-        console.log(JSON.stringify(summary, null, 2));
+        console.log(JSON.stringify(issue, null, 2));
       } else {
-        displaySummary(summary);
+        displayParsedIssue(issue);
       }
 
     } catch (error) {
@@ -160,49 +122,6 @@ function displayParsedIssue(issue: any) {
   }
 }
 
-function displaySummary(summary: IssueSummary) {
-  console.log('🔍 Issue Analysis');
-  console.log('==================');
-  console.log(`Title: ${summary.issue.content.title}`);
-  console.log(`Status: ${summary.issue.metadata.status} | Priority: ${summary.issue.metadata.priority}`);
-  console.log(`Project: ${summary.issue.metadata.project}`);
-  console.log();
-
-  console.log('📄 Technical Summary');
-  console.log('=====================');
-  console.log(summary.technicalSummary);
-  console.log();
-
-  if (summary.workCompleted.length > 0) {
-    console.log('✅ Work Completed');
-    console.log('==================');
-    summary.workCompleted.forEach(work => console.log(`• ${work}`));
-    console.log();
-  }
-
-  if (summary.remainingWork.length > 0) {
-    console.log('⏳ Remaining Work');
-    console.log('==================');
-    summary.remainingWork.forEach(work => console.log(`• ${work}`));
-    console.log();
-  }
-
-  console.log('🎯 Actionable Steps');
-  console.log('====================');
-  summary.actionableSteps.forEach((step, index) => {
-    console.log(`${index + 1}. ${step}`);
-  });
-  console.log();
-
-  const priorityEmoji = {
-    low: '🟢',
-    medium: '🟡', 
-    high: '🟠',
-    urgent: '🔴'
-  };
-
-  console.log(`📊 Recommended Priority: ${priorityEmoji[summary.recommendedPriority]} ${summary.recommendedPriority.toUpperCase()}`);
-}
 
 function displayClaudeAnalysis(analysis: ClaudeAnalysis) {
   console.log('🤖 Claude Code Analysis');

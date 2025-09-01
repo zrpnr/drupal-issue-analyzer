@@ -5,11 +5,10 @@ A CLI tool that analyzes and summarizes Drupal.org issues, providing developer-f
 ## Features
 
 - **Issue Parsing**: Extracts metadata, content, and comments from Drupal.org issue pages
-- **AI Analysis**: Uses OpenAI to provide intelligent summaries and recommendations
-- **Claude Code Integration**: Specialized workflow for AI-assisted Drupal development
-- **Developer-Focused**: Analyzes issues the way an experienced Drupal developer would
-- **Actionable Steps**: Generates specific next steps for contributing to issues
+- **Claude Code Integration**: Specialized workflow for AI-assisted Drupal development  
+- **Developer-Focused**: Structures data the way an experienced Drupal developer needs
 - **Mega-Issue Support**: Handles complex issues with 200+ comments efficiently
+- **Clean JSON Output**: Perfect for programmatic use and AI analysis
 - **CLI Interface**: Easy-to-use command-line tool
 
 ## Installation
@@ -20,9 +19,10 @@ npm install -g drupal-issue-analyzer
 
 ## Usage
 
-### Basic Analysis (without AI)
+### Basic Usage
 ```bash
-drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583" --no-ai
+# Default behavior: clean, structured parsing of Drupal issues
+drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583"
 ```
 
 ### Claude Code Integration ⚡ (Recommended)
@@ -34,7 +34,7 @@ Ask Claude: "Analyze this Drupal issue: https://www.drupal.org/project/eca/issue
 
 Claude will automatically:
 1. Spawn a specialized agent with Drupal expertise
-2. Run `drupal-issue-analyzer "[URL]" --json --no-ai` to parse the issue
+2. Run `drupal-issue-analyzer "[URL]" --json` to parse the issue
 3. Apply deep Drupal knowledge to analyze technical context and contribution opportunities
 4. Provide structured insights about readiness, complexity, and next steps
 
@@ -47,20 +47,11 @@ Claude will automatically:
 
 ### Direct CLI Usage
 ```bash
-# Basic analysis without AI
-drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583" --no-ai
-
-# Get JSON output for programmatic use
-drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583" --json --no-ai
-```
-
-### Full OpenAI Analysis
-```bash
-# Set your OpenAI API key
-export OPENAI_API_KEY=your_openai_api_key_here
-
-# Analyze an issue with OpenAI insights
+# Default: Parse and display issue data
 drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583"
+
+# Get JSON output for programmatic use or Claude Code integration
+drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583" --json
 ```
 
 ## Team Usage
@@ -194,19 +185,18 @@ npm run typecheck
 You can also use this tool programmatically:
 
 ```typescript
-import { DrupalIssueParser, IssueAnalyzer } from 'drupal-issue-analyzer';
+import { DrupalIssueParser } from 'drupal-issue-analyzer';
 
 const parser = new DrupalIssueParser();
 const issue = await parser.parseIssue('https://www.drupal.org/project/eca/issues/3539583');
 
-const analyzer = new IssueAnalyzer('your-openai-api-key');
-const summary = await analyzer.analyzeIssue(issue);
+// Use the parsed issue data for your own analysis or pass to Claude Code
+console.log(JSON.stringify(issue, null, 2));
 ```
 
 ## Requirements
 
 - Node.js 16 or later
-- OpenAI API key (for AI analysis features)
 
 ## Contributing
 
