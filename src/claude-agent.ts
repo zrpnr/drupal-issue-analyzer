@@ -81,6 +81,12 @@ Look for these indicators that code/patches exist even if not explicitly linked:
 - Status changes to review-related states
 - Comments about code quality, functionality, or test results
 
+**IMPORTANT: Analysis Constraints**
+- Work ONLY with the provided issue data - do NOT fetch additional URLs or make web requests
+- Base your analysis entirely on the comments, metadata, and content already provided
+- If you need more information, indicate that in your analysis rather than trying to fetch it
+- Do NOT attempt to access Drupal.org or any other external resources
+
 Provide a structured analysis in this EXACT format:
 
 ## TECHNICAL_SUMMARY
