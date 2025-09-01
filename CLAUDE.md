@@ -48,11 +48,13 @@ npm run typecheck
 
 ```
 src/
-├── types.ts      # TypeScript interfaces and types
-├── parser.ts     # Drupal issue parsing logic
-├── analyzer.ts   # AI analysis using OpenAI
-├── cli.ts        # Command-line interface
-└── index.ts      # Main export file
+├── types.ts              # TypeScript interfaces and types
+├── parser.ts             # Drupal issue parsing logic
+├── analyzer.ts           # OpenAI analysis using GPT-4
+├── claude-agent.ts       # Claude Code Task tool integration
+├── task-integration.ts   # Task tool wrapper and interface
+├── cli.ts                # Command-line interface
+└── index.ts              # Main export file
 ```
 
 ## Key Components
@@ -114,6 +116,12 @@ npm run dev -- "https://www.drupal.org/project/eca/issues/3539583" --no-ai
 - **Error Handling**: ✅ Comprehensive fallback to parsing-only mode when agents unavailable
 - **Large Thread Ready**: ✅ Handles extensive comment discussions (tested up to 22 comments, designed for 483+)
 - **Expert-Level Output**: ✅ Generates technical analysis with Drupal architecture knowledge
+
+### Agent Prompt Optimization ✅ COMPLETE
+- **RTBC Status Recognition**: ✅ Agent correctly interprets "Reviewed & tested by the community" status
+- **Code Detection**: ✅ Identifies MR/patch references even when not explicitly linked
+- **Status-Based Analysis**: ✅ Adjusts contribution readiness based on current issue status
+- **Web Request Constraints**: ✅ Prevents agent from making unauthorized external requests
 
 ## Future Enhancements
 
