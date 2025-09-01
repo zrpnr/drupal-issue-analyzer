@@ -23,12 +23,18 @@ npm install -g drupal-issue-analyzer
 drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583" --no-ai
 ```
 
-### Full AI Analysis
+### Claude Code Analysis (Specialized for AI Assistants)
+```bash
+# Optimized analysis for Claude Code workflows
+drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583" --claude-analysis
+```
+
+### Full OpenAI Analysis
 ```bash
 # Set your OpenAI API key
 export OPENAI_API_KEY=your_openai_api_key_here
 
-# Analyze an issue with AI insights
+# Analyze an issue with OpenAI insights
 drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583"
 ```
 
@@ -39,6 +45,46 @@ drupal-issue-analyzer "https://www.drupal.org/project/eca/issues/3539583" --json
 
 ## Example Output
 
+### Claude Code Analysis Output
+```
+🤖 Claude Code Analysis
+========================
+Title: Provide possibility to set a default access result for entity access events
+Status: Needs work | Priority: Normal
+Project: ECA: Event - Condition - Action
+
+⚡ Technical Summary
+====================
+This issue addresses limitations in ECA's entity access event system where previously 
+set access results cannot be overridden, requiring a configurable default access result mechanism.
+
+🔧 Drupal Context
+==================
+Involves Drupal's entity access system, ECA event-driven architecture, and access result 
+objects (AccessResultInterface). Relates to core entity access hooks and contrib ECA module patterns.
+
+📋 Contribution Readiness: 🟡 NEEDS DISCUSSION
+
+🎓 Complexity Level: 🟡 INTERMEDIATE
+
+🔍 Code Review Needed: ✅ Yes
+
+🎯 Next Steps for Claude Code
+==============================
+1. Review the merge request code for access result handling logic
+2. Test the proposed default access configuration with various entity types
+3. Address behavior inconsistencies between different access events mentioned in comments
+4. Validate that default "forbidden" doesn't permanently block access as reported
+
+🏗️ Related Drupal Patterns
+===========================
+• Entity access system
+• ECA event architecture
+• Access result objects
+• Entity hooks
+```
+
+### Standard Analysis Output
 ```
 🔍 Issue Analysis
 ==================

@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 import { DrupalIssueParser } from './parser.js';
 import { IssueAnalyzer } from './analyzer.js';
+import { ClaudeAgent, ClaudeAnalysis } from './claude-agent.js';
 import { IssueSummary } from './types.js';
 
 const program = new Command();
@@ -16,6 +17,7 @@ program
   .argument('<url>', 'Drupal.org issue URL to analyze')
   .option('--openai-key <key>', 'OpenAI API key for AI analysis')
   .option('--no-ai', 'Skip AI analysis and show only parsed data')
+  .option('--claude-analysis', 'Use Claude Code agent for specialized Drupal analysis')
   .option('--json', 'Output in JSON format')
   .action(async (url: string, options) => {
     try {
@@ -41,15 +43,28 @@ program
         return;
       }
 
+      if (options.claudeAnalysis) {
+        console.log('Running Claude agent analysis...\n');
+        const claudeAgent = new ClaudeAgent();
+        const analysis = await claudeAgent.analyzeIssue(issue);
+
+        if (options.json) {
+          console.log(JSON.stringify(analysis, null, 2));
+        } else {
+          displayClaudeAnalysis(analysis);
+        }
+        return;
+      }
+
       const apiKey = options.openaiKey || process.env.OPENAI_API_KEY;
       if (!apiKey) {
         console.error('Error: OpenAI API key required for AI analysis');
         console.error('Set OPENAI_API_KEY environment variable or use --openai-key option');
-        console.error('Or use --no-ai to skip AI analysis');
+        console.error('Or use --no-ai to skip AI analysis or --claude-analysis for specialized analysis');
         process.exit(1);
       }
 
-      console.log('Running AI analysis...\n');
+      console.log('Running OpenAI analysis...\n');
       const analyzer = new IssueAnalyzer(apiKey);
       const summary = await analyzer.analyzeIssue(issue);
 
@@ -173,6 +188,61 @@ function displaySummary(summary: IssueSummary) {
   };
 
   console.log(`📊 Recommended Priority: ${priorityEmoji[summary.recommendedPriority]} ${summary.recommendedPriority.toUpperCase()}`);
+}
+
+function displayClaudeAnalysis(analysis: ClaudeAnalysis) {
+  console.log('🤖 Claude Code Analysis');
+  console.log('========================');
+  console.log(`Title: ${analysis.issue.content.title}`);
+  console.log(`Status: ${analysis.issue.metadata.status} | Priority: ${analysis.issue.metadata.priority}`);
+  console.log(`Project: ${analysis.issue.metadata.project}`);
+  console.log();
+
+  console.log('⚡ Technical Summary');
+  console.log('====================');
+  console.log(analysis.technicalSummary);
+  console.log();
+
+  console.log('🔧 Drupal Context');
+  console.log('==================');
+  console.log(analysis.drupalContext);
+  console.log();
+
+  const readinessEmojis = {
+    'ready-to-contribute': '🟢',
+    'needs-discussion': '🟡',
+    'complex-advanced': '🟠',
+    'blocked': '🔴'
+  };
+
+  console.log(`📋 Contribution Readiness: ${readinessEmojis[analysis.contributionReadiness]} ${analysis.contributionReadiness.toUpperCase().replace(/-/g, ' ')}`);
+  console.log();
+
+  const complexityEmojis = {
+    'beginner': '🟢',
+    'intermediate': '🟡',
+    'advanced': '🟠',
+    'expert': '🔴'
+  };
+
+  console.log(`🎓 Complexity Level: ${complexityEmojis[analysis.estimatedComplexity]} ${analysis.estimatedComplexity.toUpperCase()}`);
+  console.log();
+
+  console.log(`🔍 Code Review Needed: ${analysis.codeReviewNeeded ? '✅ Yes' : '❌ No'}`);
+  console.log();
+
+  console.log('🎯 Next Steps for Claude Code');
+  console.log('==============================');
+  analysis.nextSteps.forEach((step, index) => {
+    console.log(`${index + 1}. ${step}`);
+  });
+  console.log();
+
+  if (analysis.relatedPatterns.length > 0) {
+    console.log('🏗️ Related Drupal Patterns');
+    console.log('===========================');
+    analysis.relatedPatterns.forEach(pattern => console.log(`• ${pattern}`));
+  }
 }
 
 program.parse();
