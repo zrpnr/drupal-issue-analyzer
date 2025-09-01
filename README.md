@@ -295,6 +295,8 @@ console.log(JSON.stringify(issue, null, 2));
 
 Contributions are welcome! Please feel free to submit issues and pull requests.
 
+## [Acknowledgments](./ACKNOWLEDGMENTS.md)
+
 ## License
 
 MIT
