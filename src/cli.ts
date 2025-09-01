@@ -19,6 +19,7 @@ program
   .option('--json', 'Output in JSON format')
   .action(async (url: string, options) => {
     try {
+      
       if (!isValidDrupalIssueUrl(url)) {
         console.error('Error: Please provide a valid Drupal.org issue URL');
         console.error('Example: https://www.drupal.org/project/eca/issues/3539583');
@@ -31,7 +32,7 @@ program
       const parser = new DrupalIssueParser();
       const issue = await parser.parseIssue(url);
 
-      if (options.noAi) {
+      if (options.ai === false) {
         if (options.json) {
           console.log(JSON.stringify(issue, null, 2));
         } else {

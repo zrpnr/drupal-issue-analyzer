@@ -19,77 +19,93 @@ export class DrupalIssueParser {
 
   private parseMetadata($: cheerio.CheerioAPI): IssueMetadata {
     const metadata: Partial<IssueMetadata> = {};
-
-    $('.field--name-field-project .field__item a').each((_, el) => {
-      metadata.project = $(el).text().trim();
-    });
-
-    $('.field--name-field-issue-version .field__item').each((_, el) => {
-      metadata.version = $(el).text().trim();
-    });
-
-    $('.field--name-field-issue-component .field__item').each((_, el) => {
-      metadata.component = $(el).text().trim();
-    });
-
-    $('.field--name-field-issue-priority .field__item').each((_, el) => {
-      metadata.priority = $(el).text().trim();
-    });
-
-    $('.field--name-field-issue-status .field__item').each((_, el) => {
-      metadata.status = $(el).text().trim();
-    });
-
-    $('time[datetime]').each((_, el) => {
-      const label = $(el).prev().text().toLowerCase();
-      if (label.includes('created') || label.includes('submitted')) {
-        metadata.created = $(el).text().trim();
-      } else if (label.includes('updated') || label.includes('changed')) {
-        metadata.updated = $(el).text().trim();
+    
+    // Use the specific metadata block
+    const metadataBlock = $('#block-project-issue-issue-metadata');
+    const metadataText = metadataBlock.text();
+    
+    // Parse the concatenated metadata using regex since there are no line breaks
+    const statusMatch = metadataText.match(/^([^P]*?)Project:/);
+    if (statusMatch) {
+      metadata.status = statusMatch[1].trim();
+    }
+    
+    const projectMatch = metadataText.match(/Project:\s*([^V]*?)Version:/);
+    if (projectMatch) {
+      metadata.project = projectMatch[1].trim();
+    }
+    
+    const versionMatch = metadataText.match(/Version:\s*([^C]*?)Component:/);
+    if (versionMatch) {
+      metadata.version = versionMatch[1].trim();
+    }
+    
+    const componentMatch = metadataText.match(/Component:\s*([^P]*?)Priority:/);
+    if (componentMatch) {
+      metadata.component = componentMatch[1].trim();
+    }
+    
+    const priorityMatch = metadataText.match(/Priority:\s*([^C]*?)Category:/);
+    if (priorityMatch) {
+      metadata.priority = priorityMatch[1].trim();
+    }
+    
+    const reporterMatch = metadataText.match(/Reporter:\s*([^C]*?)Created:/);
+    if (reporterMatch) {
+      metadata.reporter = reporterMatch[1].trim();
+    }
+    
+    const createdMatch = metadataText.match(/Created:\s*(.*?)Updated:/);
+    if (createdMatch) {
+      metadata.created = createdMatch[1].trim();
+    } else {
+      // Fallback for when there's no Updated field
+      const createdFallback = metadataText.match(/Created:\s*(.*?)(?:\s*Jump|$)/);
+      if (createdFallback) {
+        metadata.created = createdFallback[1].trim();
       }
-    });
-
-    $('.field--name-uid .field__item a').each((_, el) => {
-      if (!metadata.reporter) {
-        metadata.reporter = $(el).text().trim();
-      }
-    });
+    }
+    
+    const updatedMatch = metadataText.match(/Updated:\s*([^J]*?)(?:Jump|$)/);
+    if (updatedMatch) {
+      metadata.updated = updatedMatch[1].trim();
+    }
 
     return metadata as IssueMetadata;
   }
 
   private parseContent($: cheerio.CheerioAPI): IssueContent {
-    const title = $('h1.page-title').text().trim();
+    // Try multiple selectors for title
+    const title = $('h1').first().text().trim() || $('h1.page-title').text().trim() || $('.page-title').text().trim();
     
     const content: Partial<IssueContent> = {
       title,
       comments: []
     };
 
-    $('.field--name-body .field__item').each((_, el) => {
-      if (!content.summary) {
-        content.summary = $(el).text().trim();
-      }
-    });
+    // Extract the full page text and parse sections
+    const text = $.text();
+    
+    // Look for Problem/Motivation section
+    const problemMatch = text.match(/Problem\/Motivation\s*\n?\s*(.*?)(?=\n\s*\n|\nProposed resolution|\nRemaining tasks|$)/is);
+    if (problemMatch) {
+      content.problemMotivation = problemMatch[1].trim();
+    }
 
-    $('h3').each((_, el) => {
-      const heading = $(el).text().toLowerCase();
-      const nextContent = $(el).next('.field__item, p, div').text().trim();
-      
-      if (heading.includes('problem') || heading.includes('motivation')) {
-        content.problemMotivation = nextContent;
-      } else if (heading.includes('proposed') || heading.includes('resolution')) {
-        content.proposedResolution = nextContent;
-      } else if (heading.includes('remaining') || heading.includes('tasks')) {
-        content.remainingTasks = nextContent;
-      } else if (heading.includes('user interface') || heading.includes('ui changes')) {
-        content.userInterfaceChanges = nextContent;
-      } else if (heading.includes('api changes')) {
-        content.apiChanges = nextContent;
-      } else if (heading.includes('data model') || heading.includes('database')) {
-        content.dataModelChanges = nextContent;
-      }
-    });
+    // Look for Proposed resolution section
+    const proposedMatch = text.match(/Proposed resolution\s*\n?\s*(.*?)(?=\n\s*\n|\nRemaining tasks|\nUser interface changes|$)/is);
+    if (proposedMatch) {
+      content.proposedResolution = proposedMatch[1].trim();
+    }
+
+    // Look for Remaining tasks section
+    const tasksMatch = text.match(/Remaining tasks\s*\n?\s*(.*?)(?=\n\s*\n|\nUser interface changes|\nAPI changes|$)/is);
+    if (tasksMatch) {
+      content.remainingTasks = tasksMatch[1].trim();
+    }
+
+    // Use the first found content as summary if no specific summary found
+    content.summary = content.problemMotivation || content.proposedResolution || 'No summary available';
 
     content.comments = this.parseComments($);
 
@@ -98,36 +114,56 @@ export class DrupalIssueParser {
 
   private parseComments($: cheerio.CheerioAPI): IssueComment[] {
     const comments: IssueComment[] = [];
-
-    $('.comment').each((_, el) => {
-      const comment: Partial<IssueComment> = {};
+    
+    // Look for comment patterns in the text content
+    const text = $.text();
+    const commentSections = text.split(/(?=\d+\.\s+\w+\s+(?:ago|\d{1,2}\s+\w+\s+\d{4}))/);
+    
+    for (let i = 1; i < commentSections.length; i++) {
+      const section = commentSections[i];
       
-      comment.id = $(el).attr('id') || '';
+      // Try to extract comment data from text patterns
+      const authorMatch = section.match(/^\d+\.\s+(\w+)/);
+      const timeMatch = section.match(/(\d{1,2}\s+\w+\s+\d{4}(?:\s+at\s+\d{1,2}:\d{2})?|\d+\s+(?:minutes?|hours?|days?|weeks?|months?|years?)\s+ago)/i);
       
-      const author = $(el).find('.comment__author a').first().text().trim();
-      comment.author = author;
-      
-      const timestamp = $(el).find('time').text().trim();
-      comment.timestamp = timestamp;
-      
-      const content = $(el).find('.comment__content .field--name-comment-body .field__item').text().trim();
-      comment.content = content;
-      
-      const statusChanges = $(el).find('.comment-changes li').map((_, li) => $(li).text().trim()).get();
-      if (statusChanges.length > 0) {
-        comment.statusChange = statusChanges.join(', ');
+      if (authorMatch) {
+        const author = authorMatch[1];
+        const timestamp = timeMatch ? timeMatch[1] : '';
+        
+        // Extract content (everything after the timestamp line)
+        const lines = section.split('\n').map(l => l.trim()).filter(l => l);
+        let contentStartIndex = 1; // Skip the author line
+        
+        // Find where actual content starts (after metadata)
+        for (let j = 1; j < lines.length; j++) {
+          if (!lines[j].match(/^\d+\.\s+\w+/) && 
+              !lines[j].match(/\d+\s+(?:minutes?|hours?|days?)\s+ago/i) &&
+              !lines[j].match(/Status:\s*/) &&
+              lines[j].length > 10) {
+            contentStartIndex = j;
+            break;
+          }
+        }
+        
+        const content = lines.slice(contentStartIndex).join(' ').substring(0, 500);
+        
+        if (author && content && content.length > 10) {
+          comments.push({
+            id: `comment-${i}`,
+            author,
+            timestamp,
+            content: content.trim()
+          });
+        }
       }
-      
-      if (comment.author && comment.content) {
-        comments.push(comment as IssueComment);
-      }
-    });
-
+    }
+    
     return comments;
   }
 
   async parseIssue(url: string): Promise<ParsedIssue> {
     const $ = await this.fetchPage(url);
+    
     
     const metadata = this.parseMetadata($);
     const content = this.parseContent($);
