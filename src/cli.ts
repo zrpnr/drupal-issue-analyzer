@@ -15,6 +15,7 @@ program
   .argument('<url>', 'Drupal.org issue URL to analyze')
   .option('--analyze-size', 'Analyze prompt size without running agent (useful for mega-issues)')
   .option('--json', 'Output in JSON format')
+  .option('--claude-prompt', 'Output formatted prompt for Claude Code agent analysis')
   .action(async (url: string, options) => {
     try {
       
@@ -40,6 +41,13 @@ program
         } else {
           displaySizeAnalysis(sizeAnalysis, issue);
         }
+        return;
+      }
+
+      if (options.claudePrompt) {
+        const claudeAgent = new ClaudeAgent();
+        const formattedPrompt = claudeAgent.buildAnalysisPrompt(issue);
+        console.log(formattedPrompt);
         return;
       }
 

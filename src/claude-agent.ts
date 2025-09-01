@@ -34,7 +34,7 @@ export class ClaudeAgent {
     }
   }
 
-  private buildAnalysisPrompt(issue: ParsedIssue): string {
+  buildAnalysisPrompt(issue: ParsedIssue): string {
     const { metadata, content } = issue;
     
     return `
