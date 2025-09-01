@@ -131,60 +131,6 @@ function displayParsedIssue(issue: any) {
 }
 
 
-function displayClaudeAnalysis(analysis: ClaudeAnalysis) {
-  console.log('🤖 Claude Code Analysis');
-  console.log('========================');
-  console.log(`Title: ${analysis.issue.content.title}`);
-  console.log(`Status: ${analysis.issue.metadata.status} | Priority: ${analysis.issue.metadata.priority}`);
-  console.log(`Project: ${analysis.issue.metadata.project}`);
-  console.log();
-
-  console.log('⚡ Technical Summary');
-  console.log('====================');
-  console.log(analysis.technicalSummary);
-  console.log();
-
-  console.log('🔧 Drupal Context');
-  console.log('==================');
-  console.log(analysis.drupalContext);
-  console.log();
-
-  const readinessEmojis = {
-    'ready-to-contribute': '🟢',
-    'needs-discussion': '🟡',
-    'complex-advanced': '🟠',
-    'blocked': '🔴'
-  };
-
-  console.log(`📋 Contribution Readiness: ${readinessEmojis[analysis.contributionReadiness]} ${analysis.contributionReadiness.toUpperCase().replace(/-/g, ' ')}`);
-  console.log();
-
-  const complexityEmojis = {
-    'beginner': '🟢',
-    'intermediate': '🟡',
-    'advanced': '🟠',
-    'expert': '🔴'
-  };
-
-  console.log(`🎓 Complexity Level: ${complexityEmojis[analysis.estimatedComplexity]} ${analysis.estimatedComplexity.toUpperCase()}`);
-  console.log();
-
-  console.log(`🔍 Code Review Needed: ${analysis.codeReviewNeeded ? '✅ Yes' : '❌ No'}`);
-  console.log();
-
-  console.log('🎯 Next Steps for Claude Code');
-  console.log('==============================');
-  analysis.nextSteps.forEach((step, index) => {
-    console.log(`${index + 1}. ${step}`);
-  });
-  console.log();
-
-  if (analysis.relatedPatterns.length > 0) {
-    console.log('🏗️ Related Drupal Patterns');
-    console.log('===========================');
-    analysis.relatedPatterns.forEach(pattern => console.log(`• ${pattern}`));
-  }
-}
 
 function displaySizeAnalysis(
   analysis: {
